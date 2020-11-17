@@ -2,6 +2,6 @@
     "raw_path": "/home/maciek/datasets/braindyn",
     "nii_output": "/home/maciek/datasets/braindyn_nii",
     "dcm2niix_path": "dcm2niix",
-    "bids_folder": "/home/maciek/datasets/braindyn_bids",
+    "bids_path": "/home/maciek/datasets/braindyn_bids",
     "delete_nii": false
 }

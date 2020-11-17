@@ -10,7 +10,7 @@ def dcm2niix_func(dcm2niix_path, dicom_path, nii_path):
     try:
         sp.call([
             dcm2niix_path, # path set in settings.json
-            "-6", # default level of compression (1-9, 1=fastest, 9=smallest)
+            "-9", # default level of compression (1-9, 1=fastest, 9=smallest)
             "-b", "y", # add bids metadata JSON
             "-ba", "n", # BIDS anonymised
             "-f", "%3s_%n_%p", # file name
@@ -26,6 +26,7 @@ def dcm2niix_func(dcm2niix_path, dicom_path, nii_path):
             "-v", "n", # verbosity level h/y/n
             # "-x", "y", # crop images
             "-y", "y", # compression method y/i/n 
+            "-z", "y",
             dicom_path
         ])
     except:
