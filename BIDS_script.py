@@ -15,7 +15,7 @@ from func import dcm2niix_func
 
 # BIDS converter script 
 # Usage:
-# localiser_BIDS <participant number 0-N> <JSON settings file>
+# BIDS_script <participant number 0-N> <JSON settings file>
 
 # Before running the script, the output bids folder has to be created manually
 # along with the "participants.json". It is used to create a "participant.tsv".
@@ -120,41 +120,39 @@ df_all["seq"] = df_all["nii"].apply(lambda x: x.split(os.sep)[-1][4:])
 # * copying the files with appropriate name
 # * README
 # * CHANGES
+# * 
 # * participants.tsv
 #       - link with dataset conversion (indicator o a converted dataset)
 #       - particpant.json
 # * dataset_description.json (fill correctly)
-# * fieldmaps require an "intended for" entry (MORE INFO)
+# * fieldmaps require an "intended for" entry (MORE INFO) 
 # * dcm2nii .json has to be modified for the BIDS (external function)
-# * multiple sessions?
-# * where they belong?:
-#       mfc_smaps_v1a_QBC
-#       mfc_smaps_v1a_Array
-#       mfc_seste_b1map_v1f_tra
-#       mfc_smaps_v1a_QBC
-#       mfc_smaps_v1a_Array
+
 ################################################################################
 bids_guidance = {
     "anat": [
-        "AUTOALIGN", "LOCA_T1_FL2D_SAG", "T1_SAG_1mmiso_p3_TR2100_TI900",
-        "T2_SAG_0.8mm_p3_TR3000_TEeff97_pe95"
+        "AUTOALIGN", "LOCA_T1_FL2D_SAG", 
+        "T1_SAG_1mmiso_p3_TR2100_TI900",
+        "T2_SAG_0.8mm_p3_TR3000_TEeff97_pe95", 
+        "mfc_smaps_v1a_QBC", 
+        "mfc_smaps_v1a_Array", 
+        "mfc_seste_b1map_v1f_tra", 
+        "mtw_mfc_3dflash_v1l_R4"
+
     ],
 
     "func": [
         "fMRI_AP_TR1300_2iso_MB4_noPAT_pf78_BW2480_QC", 
         "fMRI_PA_TR1300_2iso_MB4_noPAT_pf78_BW2480_QC",
         "retino_AP", "retino_PA", "localiser_faces_AP", "localiser_faces_PA", 
-        "localiser_circles_AP", "localiser_circles_PA",
-        "mtw_mfc_3dflash_v1l_R4",
+        "localiser_circles_AP", "localiser_circles_PA"        
     ],
-
-    # "dwi": [
-    #     ""
-    # ], 
 
     "fmap": [
         "gre_field_mapping_1acq_rl_tra_e2", 
-        "gre_field_mapping_1acq_rl_tra_e2_ph"
+        "gre_field_mapping_1acq_rl_tra_e2_ph",
+        "gre_field_mapping_e2",
+        "gre_field_mapping_e2_ph",
     ]
 }
 
@@ -184,7 +182,6 @@ new_entry = {
     "participant_id": bids_sub,
     "age": dicom_info["PatientBirthDate"],
     "sex": dicom_info["PatientSex"],
-    "group": "none"
 }
 
 if bids_sub not in tsv_df["participant_id"].to_list():
@@ -196,7 +193,7 @@ if bids_sub not in tsv_df["participant_id"].to_list():
     for mod_t in bids_guidance.keys():
         bids_modality_dir = op.join(bids_sub_dir, mod_t)
         files.make_folder(bids_modality_dir)
-        mod_types = bids_guidance[i]
+        mod_types = bids_guidance[mod_t]
 
         for seq in mod_types:
             sel_df = df_all[df_all["seq"].str.contains(seq)]
@@ -205,8 +202,8 @@ if bids_sub not in tsv_df["participant_id"].to_list():
 
             # )
 
-    # tsv_df = tsv_df.append(new_entry, ignore_index=True)
-    # tsv_df.to_csv(pp_tsv_path, sep="\t", index=False)
+    tsv_df = tsv_df.append(new_entry, ignore_index=True)
+    tsv_df.to_csv(pp_tsv_path, sep="\t", index=False)
 
 
 
