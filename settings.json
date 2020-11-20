@@ -1,7 +1,13 @@
 {
     "raw_path": "/home/maciek/datasets/braindyn",
-    "nii_output": "/home/maciek/datasets/braindyn_nii",
     "dcm2niix_path": "dcm2niix",
     "bids_path": "/home/maciek/datasets/braindyn_bids",
-    "delete_nii": false
+    "modality_json_path": "modality_split.json",
+    "2d_images": [
+        "LOCA_T1_FL2D_SAG"
+    ],
+    "multi_run_seq": [
+        "retino",
+        "localiser"
+    ]
 }
