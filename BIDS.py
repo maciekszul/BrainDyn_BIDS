@@ -134,20 +134,20 @@ raw_df.bids_dir = raw_df.bids_out.apply(bids_directory)
 raw_df.bids_file = raw_df.bids_out.apply(bids_filename)
 
 # conversion to nii and BIDS format
-# raw_df["conversion_status"] = None
-# raw_df.conversion_status = raw_df.apply(
-#     lambda x: dcm2_niix_conv(x, dcm2niix_path), axis=1
-# )
+raw_df["conversion_status"] = None
+raw_df.conversion_status = raw_df.apply(
+    lambda x: dcm2_niix_conv(x, dcm2niix_path), axis=1
+)
 
 # save the log with a timestamp
 now = datetime.now()
 timestamp = datetime.timestamp(now)
 
-# raw_df.to_csv(
-#     op.join(bids_path, "{}_sub-{}_converter-log_{}.tsv".format(proj, sub_id, timestamp)),
-#     sep="\t", 
-#     index=False
-# )
+raw_df.to_csv(
+    op.join(bids_path, "{}_sub-{}_converter-log_{}.tsv".format(proj, sub_id, timestamp)),
+    sep="\t", 
+    index=False
+)
 
 # check whether there are misc files in the bids folder, copy if not
 misc_misc = files.get_files("MISC", "", "", wp=False)[2]
