@@ -19,8 +19,6 @@ from func import *
 # along with the "participants.json". It is used to create a "participant.tsv".
 # More info in the BIDS documentation on:
 # https://bids-specification.readthedocs.io/en/stable/03-modality-agnostic-files.html#participants-file
-# File "dataset_description.json" has to be provided but it is not necessary for
-# running the script.
 
 # Dataset needs to be directly from XNAT with path:
 # <recording identifier>/scans/0n_sequence
@@ -32,7 +30,6 @@ from func import *
 ################################################################################
 # TO DO:
 # * AUTOMATED BIDS VALIDATION + LOG
-# * README (dependencies [python3 + dcm2nix + utilities], usage)
 ################################################################################
 
 
@@ -136,11 +133,11 @@ files.make_folder(subject_path)
 # # paths for log and input for dcm2niix
 raw_df.bids_dir = raw_df.apply(lambda x: bids_directory(x, subject_path), axis=1)
 
-# # conversion to nii and BIDS format
-# raw_df["conversion_status"] = None
-# raw_df.conversion_status = raw_df.apply(
-#     lambda x: dcm2_niix_conv(x, dcm2niix_path), axis=1
-# )
+# conversion to nii and BIDS format
+raw_df["conversion_status"] = None
+raw_df.conversion_status = raw_df.apply(
+    lambda x: dcm2_niix_conv(x, dcm2niix_path), axis=1
+)
 
 # save the log with a timestamp
 now = datetime.now()
