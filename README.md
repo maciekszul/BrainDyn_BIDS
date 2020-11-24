@@ -23,10 +23,10 @@
 ## SCRIPT RETURNS
 * BIDS converted BRAINDYN dataset
 * conversion log
+* using BIDS validator (https://bids-standard.github.io/bids-validator/) returns only (Warning 1: [Code 25] EVENTS_TSV_MISSING)
 
 ## TO DO:
 * MPM: sequence for hMRI are not easily supported by BIDS: 
 * MPM: convert and name appropriately, add .bidsignore
-* MPM:  
 * *.tsv files accmpanying the *_bold task files
 * bids_validator(???)
