@@ -3,11 +3,20 @@
     "dcm2niix_path": "dcm2niix",
     "bids_path": "/home/maciek/datasets/braindyn_bids",
     "modality_json_path": "modality_split.json",
-    "2d_images": [
-        "LOCA_T1_FL2D_SAG"
-    ],
-    "multi_run_seq": [
-        "retino",
-        "localiser"
+    "mpm": [
+        "mfc_seste_b1map_v1f",
+        "gre_field_mapping_1acq_rl",
+        "mfc_smaps_v1a_Array",
+        "mfc_smaps_v1a_QBC",
+        "t1w_mfc_3dflash_v1l_R4",
+        "mfc_smaps_v1a_Array",
+        "mfc_smaps_v1a_QBC",
+        "pdw_mfc_3dflash_v1l_R4",
+        "mfc_smaps_v1a_Array",
+        "mfc_smaps_v1a_QBC",
+        "mtw_mfc_3dflash_v1l_R4",
+        "fMRI_AP_TR1300_2iso_MB4_noPAT_pf78_BW2480_QC",
+        "fMRI_PA_TR1300_2iso_MB4_noPAT_pf78_BW2480_QC",
+        "gre_field_mapping"
     ]
 }

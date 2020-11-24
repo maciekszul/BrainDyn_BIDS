@@ -31,7 +31,6 @@ from func import *
 
 ################################################################################
 # TO DO:
-# * GRE FIELD MAPPING !!!!!!!!! (look at "func.py" as well)
 # * AUTOMATED BIDS VALIDATION + LOG
 # * README (dependencies [python3 + dcm2nix + utilities], usage)
 ################################################################################
@@ -70,6 +69,8 @@ mod_split_path = parameters["modality_json_path"]
 with open(mod_split_path) as mod_file:
     modality = json.load(mod_file)
 
+modality = {k.lower(): [i.lower()for i in v] for k, v in modality.items()}
+
 # get the separate xnat recordings, treated as separate participants
 recordings = files.get_folders_files(raw_path)[0]
 recordings.sort()
@@ -90,15 +91,13 @@ raw_df["seq_name"] = raw_df.seq_name.str.lower()
 raw_df = raw_df.sort_values("clean_file_name", ignore_index=True)
 raw_df["project_name"] = proj
 raw_df["sub_id"] = sub_id
-raw_df["date"] = date
-raw_df["time"] = time
-raw_df["modality"] = raw_df.clean_file_name.apply(lambda x: string_in_dict(x, modality))
+raw_df["modality"] = raw_df.seq_name.apply(lambda x: string_in_dict(x, modality, None))
 raw_df["run"] = None
-raw_df["bids_after_id"] = None
-raw_df["bids_out"] = None
 raw_df["bids_dir"] = None
 raw_df["bids_file"] = None
-
+raw_df["IntendedFor"] = None
+raw_df["date"] = date
+raw_df["time"] = time
 ################################################################################
 # massively PITA way to assign run numbers to unnumbered duplicates and fixing
 # the names to conform to BIDS
@@ -112,12 +111,18 @@ for u_seq in uniq_seq:
         raw_df.at[ix, "run"] = run_n
 
 # fixing the names
-raw_df.bids_after_id = raw_df.apply(retino, axis=1)
-raw_df.bids_after_id = raw_df.apply(localiser, axis=1)
-raw_df.bids_after_id = raw_df.apply(other_anat, axis=1)
-raw_df.bids_after_id = raw_df.apply(t_weighted, axis=1)
-raw_df.bids_after_id = raw_df.apply(fmri_qc, axis=1)
-########## GRE FIELD MAPPING IS MISSING ##########
+
+raw_df.bids_file = raw_df.apply(t_weighted, axis=1)
+raw_df.bids_file = raw_df.apply(retino, axis=1)
+raw_df.bids_file = raw_df.apply(localiser, axis=1)
+
+# adding the IntendedFor where applies
+func = raw_df.loc[raw_df.modality == "func"].reset_index()
+fmap = raw_df.loc[raw_df.modality == "fmap"].reset_index()
+fmap.IntendedFor = func.bids_file.apply(lambda x: "func/"+ x)
+for ix, row in fmap.iterrows():
+    raw_df.at[row["index"], "IntendedFor"] = row.IntendedFor
+
 
 # creating a basic folder structure if nonexistent
 project_path = op.join(bids_path, proj)
@@ -128,16 +133,14 @@ files.make_folder(subject_path)
 
 [files.make_folder(op.join(subject_path, m)) for m in modality.keys()]
 
-# paths for log and input for dcm2niix
-raw_df.bids_out = raw_df.apply(lambda x: bids_out_path(x, subject_path), axis=1)
-raw_df.bids_dir = raw_df.bids_out.apply(bids_directory)
-raw_df.bids_file = raw_df.bids_out.apply(bids_filename)
+# # paths for log and input for dcm2niix
+raw_df.bids_dir = raw_df.apply(lambda x: bids_directory(x, subject_path), axis=1)
 
-# conversion to nii and BIDS format
-raw_df["conversion_status"] = None
-raw_df.conversion_status = raw_df.apply(
-    lambda x: dcm2_niix_conv(x, dcm2niix_path), axis=1
-)
+# # conversion to nii and BIDS format
+# raw_df["conversion_status"] = None
+# raw_df.conversion_status = raw_df.apply(
+#     lambda x: dcm2_niix_conv(x, dcm2niix_path), axis=1
+# )
 
 # save the log with a timestamp
 now = datetime.now()
@@ -146,13 +149,14 @@ timestamp = datetime.timestamp(now)
 raw_df.to_csv(
     op.join(bids_path, "{}_sub-{}_converter-log_{}.tsv".format(proj, sub_id, timestamp)),
     sep="\t", 
+
     index=False
 )
 
 # check whether there are misc files in the bids folder, copy if not
 misc_misc = files.get_files("MISC", "", "", wp=False)[2]
 bids_misc = files.get_files(project_path,"","", wp=False)[2]
-if all(file in bids_misc for file in misc_misc):
+if not all(file in bids_misc for file in misc_misc):
     for misc_file in files.get_folders_files("MISC")[1]:
         shutil.copy(
             misc_file,
@@ -160,7 +164,7 @@ if all(file in bids_misc for file in misc_misc):
         )
 
 # open random JSON from converted dataset
-with open("".join([raw_df.bids_out.unique().tolist()[0], ".json"])) as conv_js:
+with open(files.get_files(raw_df.bids_dir.unique().tolist()[1], "", ".json")[2][0]) as conv_js:
     converted_json = json.load(conv_js)
 
 # open the participans.json
@@ -172,6 +176,29 @@ new_entry = {
     "age": converted_json["PatientBirthDate"],
     "sex": converted_json["PatientSex"],
 }
+
+# add fields to JSON files
+
+# task name
+bold = raw_df.bids_file.str.contains("bold", na=False)
+for name in ["PRF", "circle", "faces"]:
+    name_file = raw_df.bids_file.str.contains(name, na=False)
+    file_names = raw_df.bids_file.loc[bold & name_file].tolist()
+    file_paths = raw_df.bids_dir.loc[bold & name_file].tolist()
+    for p, f in zip(file_paths, file_names):
+        update_JSON_file(
+            op.join(p, f + ".json"), 
+            "TaskName", 
+            name
+            )
+
+# IntendedFor
+for ix, row in raw_df.loc[raw_df.IntendedFor.str.contains("bold", na=False)].iterrows():
+    update_JSON_file(
+        op.join(row.bids_dir, row.bids_file + ".json"),
+        "IntendedFor",
+        row.IntendedFor + ".nii.gz"
+    )
 
 # TSV creation if there is no such file
 pp_tsv_path = op.join(project_path, "participants.tsv")

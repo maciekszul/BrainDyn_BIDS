@@ -1,21 +1,16 @@
 {
     "anat": [
-        "AUTOALIGN",
         "T1_SAG_1mmiso_p3_TR2100_TI900",
-        "T2_SAG_0.8mm_p3_TR3000_TEeff97_pe95",
-        "mfc_seste",
-        "mfc_smaps",
-        "mtw_mfc_3dflash",
-        "pdw_mfc_3dflash",
-        "t1w_mfc_3dflash"
+        "T2_SAG_0.8mm_p3_TR3000_TEeff97_pe95"
     ],
     "func": [
-        "fMRI_AP_TR1300_2iso_MB4_noPAT_pf78_BW2480",
-        "fMRI_PA_TR1300_2iso_MB4_noPAT_pf78_BW2480",
-        "retino",
-        "localiser"
+        "retino_AP",
+        "localiser_faces_AP",
+        "localiser_circle_AP"
     ],
     "fmap": [
-        "gre_field_mapping"
+        "retino_PA",
+        "localiser_faceS_PA",
+        "localiser_circle_PA"
     ]
 }

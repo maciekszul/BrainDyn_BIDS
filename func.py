@@ -2,6 +2,7 @@ from utilities import files
 import subprocess as sp
 import os
 import numpy as np
+import json
 
 def dcm2niix_func(dcm2niix_path, dicom_path, output_path, file_name):
     # dcm2niix command line wrapper
@@ -18,12 +19,9 @@ def dcm2niix_func(dcm2niix_path, dicom_path, output_path, file_name):
             "-f", file_name, # file name
             "-i", "y", # ignore localizer and 2D images
             # "-l", "y", # lossless scaling of 16 bit integers
-            "-m", "y", # merge slices regardless of acquisition params
+            "-m", "n", # merge slices regardless of acquisition params
             # "-n", # convert series with number, no number for all
             "-o", output_path, # output
-            "-p", "n", # Philips scaling instead of display scaling (???)
-            "-r", "n", # "y" renames files instead of converting
-            "-s", "n", # converts a single file
             "-t", "n", # save patient details as text file
             "-v", "n", # verbosity level h/y/n
             # "-x", "y", # crop images
@@ -45,77 +43,94 @@ def zero_padding_adder(path):
     return clean_filename
 
 
-def string_in_dict(string, dictionary):
+def string_in_dict(string, dictionary, else_value):
     # returns a first key to a dictionary containing substrings that match
     # a given string. Assumption: ditionary contains list of strings.
     for key in dictionary.keys():
         if any([s in string for s in dictionary[key]]):
             return key
     else:
-        return None
-
-
-def retino(x):
-    # returns a BIDS formatted chunk of the name
-    if "retino" in x.seq_name:
-        run = "_run-" + x.seq_name[3]
-        return "".join(["task-", x.seq_name[5:11], "{}", x.seq_name[11:12], "{}", x.seq_name[12:]]).format(run, "dir-")
-    else:
-        return x["bids_after_id"]
-
-def localiser(x):
-    if "localiser_circle" in x.seq_name:
-        return "".join(["task-localiserCIRCLE_", "dir-", x.seq_name[17:]])
-    elif "localiser_faces" in x.seq_name:
-        return "".join(["task-localiserFACES_", "dir-", x.seq_name[16:]])
-    else:
-        return x["bids_after_id"]
-
-
-def other_anat(x):
-    other_anat = [
-        "mfc", "pdw", "mtw", "autoalign"
-    ]
-    if any([s in x["seq_name"] for s in other_anat]):
-        return "".join(["run-{}_".format(x["run"]), "acq-", x["seq_name"]])
-    else:
-        return x["bids_after_id"]
+        return else_value
 
 
 def t_weighted(x):
     if "t1_sag" in x["seq_name"]:
-        return "".join(["run-{}".format(x["run"]), "_T1w"])
+        return "".join(["sub-{}_".format(x["sub_id"]), "run-{}".format(x["run"]), "_T1w"])
     elif "t2_sag" in x["seq_name"]:
-        return "".join(["run-{}".format(x["run"]), "_T2w"])
+        return "".join(["sub-{}_".format(x["sub_id"]), "run-{}".format(x["run"]), "_T2w"])
     else:
-        return x["bids_after_id"]
+        return x["bids_file"]
 
 
-def fmri_qc(x):
-    if "fmri_" in x["seq_name"]:
-       return "".join(["task-fmriQC", "_dir-", x["seq_name"][5:7], "_run-", str(x["run"]), x["seq_name"][44:]])
+def retino(x):
+    if (x["modality"] == "func") and ("retino" in x["seq_name"]):
+        contrast_label = None
+        run = x["seq_name"][3]
+        if "sbref" in x["seq_name"]:
+            contrast_label = "sbref"
+        if "sbref" not in x["seq_name"]:
+            contrast_label = "bold"
+        return "sub-{0}_task-PRF_dir-AP_run-{1}_{2}".format(
+            x["sub_id"],
+            run,
+            contrast_label
+        )
+    elif (x["modality"] == "fmap") and ("retino" in x["seq_name"]):
+        run = x["seq_name"][3]
+        dir_label = None
+        if "sbref" in x["seq_name"]:
+            dir_label = "sbref"
+        if "sbref" not in x["seq_name"]:
+            dir_label = ""
+        return "sub-{0}_dir-PRF{1}_run-{2}_epi".format(
+            x["sub_id"],
+            dir_label,
+            run
+        )
     else:
-        return x["bids_after_id"]
+        return x["bids_file"]
+
+def localiser(x):
+    if (x["modality"] == "func") and ("localiser" in x["seq_name"]):
+        contrast_label = None
+        task_subname = None
+        if "sbref" in x["seq_name"]:
+            contrast_label = "sbref"
+        if "sbref" not in x["seq_name"]:
+            contrast_label = "bold"
+        if "circle" in x["seq_name"]:
+            task_subname = "circle"
+        if "faces" in x["seq_name"]:
+            task_subname = "faces"
+        return "sub-{0}_task-{1}_dir-AP_{2}".format(
+            x["sub_id"],
+            task_subname,
+            contrast_label
+        )
+    
+    elif (x["modality"] == "fmap") and ("localiser" in x["seq_name"]):
+        dir_label = None
+        task_subname = None
+        if "sbref" in x["seq_name"]:
+            dir_label = "sbref"
+        if "sbref" not in x["seq_name"]:
+            dir_label = ""
+        if "circle" in x["seq_name"]:
+            task_subname = "circle"
+        if "faces" in x["seq_name"]:
+            task_subname = "faces"
+        return "sub-{0}_dir-{1}{2}_epi".format(
+            x["sub_id"],
+            task_subname,
+            dir_label
+        )
+    else:  
+        return x["bids_file"]
 
 
-def bids_out_path(x, subject_path):
-    if x.bids_after_id != None:
-        path_template = os.path.join(subject_path, x.modality)
-        bids_filename = "".join(["sub-", x.sub_id, "_", x.bids_after_id])
-        return "".join([path_template, os.sep, bids_filename])
-    else:
-        return None
-
-
-def bids_filename(x):
-    if x != None:
-        return x.split(os.sep)[-1]
-    else:
-        return None
-
-def bids_directory(x):
-    if x != None:
-        return os.path.join(os.sep, *x.split(os.sep)[:-1])
+def bids_directory(x, subject_path):
+    if x.bids_file != None:
+        return os.path.join(subject_path, x.modality)
     else:
         return None
 
@@ -138,8 +153,34 @@ def dcm2_niix_conv(x, dcm2niix_path):
             x.bids_file
         )
         return conv
-    ########## GRE FIELD MAPPING IS MISSING ##########
-    # elif "fmap" in x.modality:
-    #     return "converted"
+    elif "fmap" in str(x.modality):
+        conv = dcm2niix_func(
+            dcm2niix_path,
+            x.absolute_path,
+            x.bids_dir,
+            x.bids_file
+        )
+        return "converted"
     else:
         return "omitted"
+
+
+def update_JSON_file(file_path, key, value, replace=True):
+    # adds key with value to the existing JSON file
+    # returns a status of the update
+    with open(file_path) as json_file:
+        json_d = json.load(json_file)
+    
+    key_exists = any(key == k for k in json_d.keys())
+    status = None
+    if key_exists and not replace:
+        status = "entry_exists_not_replaced"
+
+    else:
+        json_d[key] = value
+        status = "entry_added_or_replaced" 
+
+    with open(file_path, "w") as out:
+        json.dump(json_d, out)
+    
+    return status
