@@ -5,6 +5,7 @@
 * "utilities" module either in script folder or added to PYTHONPATH (git clone https://github.com/maciekszul/utilities.git)
 * all datasets need to be directly from XNAT with path: <recording identifier>/scans/0n_sequence
 * known command/path to working dcm2niix (version v1.0.20201102 used)
+* the software requirements can be satisfied using a Miniconda and installing dcm2niix with ```bash conda install -c conda-forge dcm2niix```
 
 ## USAGE
 ### check "settings.json"
