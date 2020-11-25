@@ -27,6 +27,7 @@
 * using BIDS validator (https://bids-standard.github.io/bids-validator/) returns only (Warning 1: [Code 25] EVENTS_TSV_MISSING)
 
 ## TO DO:
+* additional folder structure for the output
 * MPM: sequence for hMRI are not easily supported by BIDS: 
 * MPM: convert and name appropriately, add .bidsignore
 * *.tsv files accmpanying the *_bold task files
