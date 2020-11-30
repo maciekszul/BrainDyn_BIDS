@@ -17,7 +17,7 @@
 * provide common substrings for the sequences, split into modalities (already done for the main part of the data)
 
 ### run the script
-* ```bash python <path/to/the/script/folder>BIDS.py N```
+* ``` python <path/to/the/script/folder>BIDS.py N```
 * N order of the participants in the folder (zero-indexed)
 * very easy to run in a bash script
 
