@@ -1,7 +1,7 @@
 {
-    "raw_path": "/home/maciek/datasets/braindyn",
+    "raw_path": "/home/mjszul/datasets/xnat_disasters",
     "dcm2niix_path": "dcm2niix",
-    "bids_path": "/home/maciek/datasets/braindyn_bids",
+    "bids_path": "/home/mjszul/datasets/braindyn_bids",
     "modality_json_path": "modality_split.json",
     "mpm": [
         "mfc_seste_b1map_v1f",

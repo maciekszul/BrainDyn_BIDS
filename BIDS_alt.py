@@ -10,7 +10,6 @@ import numpy as np
 from utilities import files
 from func import *
 
-
 # BIDS converter script 
 # Usage:
 # BIDS_script <participant number 0-N> <JSON settings file>
@@ -72,19 +71,33 @@ modality = {k.lower(): [i.lower()for i in v] for k, v in modality.items()}
 recordings = files.get_folders_files(raw_path)[0]
 recordings.sort()
 recording = recordings[index] # if there is no such path script will throw an error
+recording = op.join(recording, "ses-mri")
+recording = files.get_folders_files(recording)[0][0]
 
 # get the project, ID, date and time from the folder name (assuming CERMEP/XNAT naming scheme)
 proj, sub_id, date, time = recording.split(os.sep)[1:][-1].split("_")[1:]
-
-raw_seq_path = op.join(raw_path, recording, "scans")
-raw_seq = files.get_folders_files(raw_seq_path)[0]
+raw_seq = files.get_folders_files(recording)[0]
+raw_seq.sort()
+raw_seq = raw_seq[:-2]
 
 # creating a data frame to store and tidy up all the paths and basic info.
-df_dict = {"absolute_path": raw_seq}
-raw_df = pd.DataFrame.from_dict(df_dict)
-raw_df["clean_file_name"] = raw_df.absolute_path.apply(zero_padding_adder)
+raw_df = pd.read_csv("braindyn_files.csv")
+raw_df.clean_file_name = raw_df.clean_file_name.apply(zero_padding_adder)
+raw_df.clean_file_name = raw_df.clean_file_name.str.lower()
+raw_df["clean_rd_numb"] = raw_df.clean_file_name.apply(lambda x: x[:3])
+
+seq_fix = pd.DataFrame.from_dict({"absolute_path": raw_seq})
+seq_fix["clean_ap_name"] = seq_fix.absolute_path.apply(zero_padding_adder)
+
+raw_df = pd.merge(
+    raw_df, seq_fix, 
+    left_on="clean_rd_numb", 
+    right_on="clean_ap_name", 
+    how="outer"
+)
+
+raw_df.drop(columns=["clean_rd_numb", "clean_ap_name"], inplace=True)
 raw_df["seq_name"] = raw_df.clean_file_name.apply(lambda x: x[4:])
-raw_df["seq_name"] = raw_df.seq_name.str.lower()
 raw_df = raw_df.sort_values("clean_file_name", ignore_index=True)
 raw_df["project_name"] = proj
 raw_df["sub_id"] = sub_id
@@ -95,10 +108,7 @@ raw_df["bids_file"] = None
 raw_df["IntendedFor"] = None
 raw_df["date"] = date
 raw_df["time"] = time
-################################################################################
-# massively PITA way to assign run numbers to unnumbered duplicates and fixing
-# the names to conform to BIDS
-################################################################################
+
 uniq_seq = raw_df.seq_name.unique().tolist()
 for u_seq in uniq_seq:
     chunk = (raw_df.loc[(raw_df.seq_name == u_seq)])
@@ -108,7 +118,6 @@ for u_seq in uniq_seq:
         raw_df.at[ix, "run"] = run_n
 
 # fixing the names
-
 raw_df.bids_file = raw_df.apply(t_weighted, axis=1)
 raw_df.bids_file = raw_df.apply(retino, axis=1)
 raw_df.bids_file = raw_df.apply(localiser, axis=1)
@@ -119,7 +128,6 @@ fmap = raw_df.loc[raw_df.modality == "fmap"].reset_index()
 fmap.IntendedFor = func.bids_file.apply(lambda x: "func/"+ x)
 for ix, row in fmap.iterrows():
     raw_df.at[row["index"], "IntendedFor"] = row.IntendedFor
-
 
 # creating a basic folder structure if nonexistent
 project_path = op.join(bids_path, proj)
@@ -212,3 +220,11 @@ if new_entry["participant_id"] not in tsv_df["participant_id"].to_list():
     tsv_df.to_csv(pp_tsv_path, sep="\t", index=False)
 else:
     print(new_entry["participant_id"], "Existing entry")
+
+
+"""
+TO DO:
+fix the issue with weird entry in the json "ReconstructionMethod". Anything
+to do with "Warning: Adjusting for negative MosaicRefAcqTimes (issue 271)." ?
+get the newest version of the script from my laptop
+"""
