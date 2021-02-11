@@ -54,6 +54,7 @@ modality = {k.lower(): [i.lower()for i in v] for k, v in modality.items()}
 # get the separate xnat recordings, treated as separate participants
 recordings = files.get_folders_files(raw_path)[0]
 recordings.sort()
+recordings = [i for i in recordings if "sub-1" in i]
 recording = recordings[index] # if there is no such path script will throw an error
 sub_id = recording.split(os.sep)[-1]
 recording = op.join(recording, "ses-mri")
