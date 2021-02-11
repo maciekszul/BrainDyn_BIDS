@@ -186,7 +186,7 @@ new_entry = {
 
 # task name
 bold = raw_df.bids_file.str.contains("bold", na=False)
-for name in ["PRF", "circle", "faces"]:
+for name in ["PRF", "circle", "flicker"]:
     name_file = raw_df.bids_file.str.contains(name, na=False)
     file_names = raw_df.bids_file.loc[bold & name_file].tolist()
     file_paths = raw_df.bids_dir.loc[bold & name_file].tolist()

@@ -1,7 +1,7 @@
 {
     "anat": [
-        "T1_SAG_1mmiso_p3_TR2100_TI900",
-        "T2_SAG_0.8mm_p3_TR3000_TEeff97_pe95"
+        "t1w_mfc_3dflash_v1l_R4",
+        "t2_sag"
     ],
     "func": [
         "retino_AP",

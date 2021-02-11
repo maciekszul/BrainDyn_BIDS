@@ -16,7 +16,6 @@ from func import *
 # BIDS_script <participant number 0-N> <JSON settings file>
 
 # Before running the script, the output bids folder has to be created manually
-# along with the "participants.json". It is used to create a "participant.tsv".
 # More info in the BIDS documentation on:
 # https://bids-specification.readthedocs.io/en/stable/03-modality-agnostic-files.html#participants-file
 
@@ -178,7 +177,7 @@ new_entry = {
 
 # task name
 bold = raw_df.bids_file.str.contains("bold", na=False)
-for name in ["PRF", "circle", "faces"]:
+for name in ["PRF", "flicker", "faces"]:
     name_file = raw_df.bids_file.str.contains(name, na=False)
     file_names = raw_df.bids_file.loc[bold & name_file].tolist()
     file_paths = raw_df.bids_dir.loc[bold & name_file].tolist()
