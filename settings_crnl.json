@@ -1,0 +1,9 @@
+{
+    "raw_path": "/dycog/Mathilde/BrainDyn/Data",
+    "dcm2niix_path": "dcm2niix",
+    "neurodocker_path": "/home/maciej.szul/my_images/neurodocker.simg",
+    "bids_path": "/dycog/Mathilde/BrainDyn/Data/braindyn_bids",
+    "modality_json_path": "modality_split.json",
+    "project_name": "BRAINDYN",
+    "mri_path": "/home/mjszul/datasets/mri_fs/MRI"
+}

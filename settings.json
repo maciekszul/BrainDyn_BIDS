@@ -4,5 +4,6 @@
     "neurodocker_path": "/home/mjszul/containers/neurodocker.simg",
     "bids_path": "/home/mjszul/datasets/braindyn_bids",
     "modality_json_path": "modality_split.json",
-    "project_name": "BRAINDYN"
+    "project_name": "BRAINDYN",
+    "mri_path": "/home/mjszul/datasets/mri_fs/MRI"
 }

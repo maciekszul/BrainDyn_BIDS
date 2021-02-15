@@ -210,12 +210,12 @@ for name in ["PRF", "faces", "flicker"]:
             )
 
 # conversion of the t1 with fslroi
-neurodocker = parameters["neurodocker_path"]
-t1 = conversion_log.bids_file.str.contains("T1w", na=False)
-t1_path = conversion_log.nifti_out.loc[t1].tolist()[0]
-sp.call(
-    ["singularity", "run", neurodocker, "fslroi", t1_path, t1_path, "0", "1"]
-)
+# neurodocker = parameters["neurodocker_path"]
+# t1 = conversion_log.bids_file.str.contains("T1w", na=False)
+# t1_path = conversion_log.nifti_out.loc[t1].tolist()[0]
+# sp.call(
+#     ["singularity", "run", neurodocker, "fslroi", t1_path, t1_path, "0", "1"]
+# )
 
 # saving a log
 conversion_log.to_csv(
