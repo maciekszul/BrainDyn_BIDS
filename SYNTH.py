@@ -2,6 +2,7 @@ import sys
 import json
 import shutil
 import os.path as op
+import subprocess as sp
 from utilities import files
 
 try:
@@ -25,6 +26,7 @@ with open(json_file) as pipeline_file:
 project_name = parameters["project_name"]
 dataset_path = parameters["bids_path"]
 mri_path = parameters["mri_path"]
+nd_path = parameters["neurodocker_path"]
 
 raw_fs = files.get_folders_files(mri_path)[0]
 raw_fs = [i for i in raw_fs if "synth" in i]
@@ -43,11 +45,7 @@ subject_id = "sub-" + in_path.split("/")[-1].split("-")[0]
 
 out_path = op.join(freesurfer, subject_id)
 
-t1_in = op.join(in_path, "mri", "T1.mgz")
-t2_in = op.join(in_path, "mri", "T1.mgz")
-
-t1_out = op.join(dataset_path, project_name, "anat", subject_id, "T1w.nii.gz")
-t2_out = op.join(dataset_path, project_name, "anat", subject_id, "T2w.nii.gz")
+shutil.copytree(in_path, out_path)
 
 print("OUTPUT FOLDER:", out_path)
 
